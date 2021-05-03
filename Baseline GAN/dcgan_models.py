@@ -5,66 +5,117 @@ from torch.autograd import Variable
 from spectral import SpectralNorm
 import numpy as np
 
-
 class Generator_DC(nn.Module):
-    # initializers
-    def __init__(self, d=128):
+    """Generator."""
+
+    def __init__(self, batch_size, image_size=64, z_dim=100, conv_dim=64):
         super(Generator_DC, self).__init__()
-        self.deconv1 = nn.ConvTranspose2d(100, d*8, 4, 1, 0)
-        self.deconv1_bn = nn.BatchNorm2d(d*8)
-        self.deconv2 = nn.ConvTranspose2d(d*8, d*4, 4, 2, 1)
-        self.deconv2_bn = nn.BatchNorm2d(d*4)
-        self.deconv3 = nn.ConvTranspose2d(d*4, d*2, 4, 2, 1)
-        self.deconv3_bn = nn.BatchNorm2d(d*2)
-        self.deconv4 = nn.ConvTranspose2d(d*2, d, 4, 2, 1)
-        self.deconv4_bn = nn.BatchNorm2d(d)
-        self.deconv5 = nn.ConvTranspose2d(d, 3, 4, 2, 1)
+        self.imsize = image_size
+        layer1 = []
+        layer2 = []
+        layer3 = []
+        last = []
 
-    # weight_init
-    def weight_init(self, mean, std):
-        for m in self._modules:
-            normal_init(self._modules[m], mean, std)
+        repeat_num = int(np.log2(self.imsize)) - 3
+        mult = 2 ** repeat_num  # 8
+        layer1.append(SpectralNorm(nn.ConvTranspose2d(z_dim, conv_dim * mult, 4)))
+        layer1.append(nn.BatchNorm2d(conv_dim * mult))
+        layer1.append(nn.ReLU())
 
-    # forward method
-    def forward(self, input):
-        # x = F.relu(self.deconv1(input))
-        x = F.relu(self.deconv1_bn(self.deconv1(input)))
-        x = F.relu(self.deconv2_bn(self.deconv2(x)))
-        x = F.relu(self.deconv3_bn(self.deconv3(x)))
-        x = F.relu(self.deconv4_bn(self.deconv4(x)))
-        x = torch.tanh(self.deconv5(x))
+        curr_dim = conv_dim * mult
 
-        return x , None, None
+        layer2.append(SpectralNorm(nn.ConvTranspose2d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
+        layer2.append(nn.BatchNorm2d(int(curr_dim / 2)))
+        layer2.append(nn.ReLU())
+
+        curr_dim = int(curr_dim / 2)
+
+        layer3.append(SpectralNorm(nn.ConvTranspose2d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
+        layer3.append(nn.BatchNorm2d(int(curr_dim / 2)))
+        layer3.append(nn.ReLU())
+
+        if self.imsize == 64:
+            layer4 = []
+            curr_dim = int(curr_dim / 2)
+            layer4.append(SpectralNorm(nn.ConvTranspose2d(curr_dim, int(curr_dim / 2), 4, 2, 1)))
+            layer4.append(nn.BatchNorm2d(int(curr_dim / 2)))
+            layer4.append(nn.ReLU())
+            self.l4 = nn.Sequential(*layer4)
+            curr_dim = int(curr_dim / 2)
+
+        self.l1 = nn.Sequential(*layer1)
+        self.l2 = nn.Sequential(*layer2)
+        self.l3 = nn.Sequential(*layer3)
+
+        last.append(nn.ConvTranspose2d(curr_dim, 3, 4, 2, 1))
+        last.append(nn.Tanh())
+        self.last = nn.Sequential(*last)
+
+    def forward(self, z):
+        z = z.view(z.size(0), z.size(1), 1, 1)
+        # 64 x 128 x 1 x 1
+        out = self.l1(z)
+        # 64 x 512 x 4 x 4
+        out = self.l2(out)
+        # 64 x 256 x 8 x 8
+        out = self.l3(out)
+        # 64 x 128 x 16 x 16
+        out = self.l4(out)
+        # 64 x 64 x 32 x 32
+        out = self.last(out)
+        # 64 x 3 x 64 x 64
+
+        return out, None, None
+
 
 class Discriminator_DC(nn.Module):
-    # initializers
-    def __init__(self, d=128):
+    """Discriminator, Auxiliary Classifier."""
+
+    def __init__(self, batch_size=64, image_size=64, conv_dim=64):
         super(Discriminator_DC, self).__init__()
-        self.conv1 = nn.Conv2d(3, d, 4, 2, 1)
-        self.conv2 = nn.Conv2d(d, d*2, 4, 2, 1)
-        self.conv2_bn = nn.BatchNorm2d(d*2)
-        self.conv3 = nn.Conv2d(d*2, d*4, 4, 2, 1)
-        self.conv3_bn = nn.BatchNorm2d(d*4)
-        self.conv4 = nn.Conv2d(d*4, d*8, 4, 2, 1)
-        self.conv4_bn = nn.BatchNorm2d(d*8)
-        self.conv5 = nn.Conv2d(d*8, 1, 4, 1, 0)
+        self.imsize = image_size
+        layer1 = []
+        layer2 = []
+        layer3 = []
+        last = []
 
-    # weight_init
-    def weight_init(self, mean, std):
-        for m in self._modules:
-            normal_init(self._modules[m], mean, std)
+        layer1.append(SpectralNorm(nn.Conv2d(3, conv_dim, 4, 2, 1)))
+        layer1.append(nn.LeakyReLU(0.1))
 
-    # forward method
-    def forward(self, input):
-        x = F.leaky_relu(self.conv1(input), 0.2)
-        x = F.leaky_relu(self.conv2_bn(self.conv2(x)), 0.2)
-        x = F.leaky_relu(self.conv3_bn(self.conv3(x)), 0.2)
-        x = F.leaky_relu(self.conv4_bn(self.conv4(x)), 0.2)
-        x = torch.sigmoid(self.conv5(x))
+        curr_dim = conv_dim
 
-        return x, None, None
+        layer2.append(SpectralNorm(nn.Conv2d(curr_dim, curr_dim * 2, 4, 2, 1)))
+        layer2.append(nn.LeakyReLU(0.1))
+        curr_dim = curr_dim * 2
 
-def normal_init(m, mean, std):
-    if isinstance(m, nn.ConvTranspose2d) or isinstance(m, nn.Conv2d):
-        m.weight.data.normal_(mean, std)
-        m.bias.data.zero_()
+        layer3.append(SpectralNorm(nn.Conv2d(curr_dim, curr_dim * 2, 4, 2, 1)))
+        layer3.append(nn.LeakyReLU(0.1))
+        curr_dim = curr_dim * 2
+
+        if self.imsize == 64:
+            layer4 = []
+            layer4.append(SpectralNorm(nn.Conv2d(curr_dim, curr_dim * 2, 4, 2, 1)))
+            layer4.append(nn.LeakyReLU(0.1))
+            self.l4 = nn.Sequential(*layer4)
+            curr_dim = curr_dim * 2
+        self.l1 = nn.Sequential(*layer1)
+        self.l2 = nn.Sequential(*layer2)
+        self.l3 = nn.Sequential(*layer3)
+
+        last.append(nn.Conv2d(curr_dim, 1, 4))
+        self.last = nn.Sequential(*last)
+
+
+    def forward(self, x):
+        # 64 x 3 x 64 x 64
+        out = self.l1(x)
+        # 64 x 64 x 32 x 32
+        out = self.l2(out)
+        # 64 x 128 x 16 x 16
+        out = self.l3(out)
+        # 64 x 256 x 8 x 8
+        out = self.l4(out)
+        # 64 x 512 x 4 x 4
+        out = self.last(out)
+        # 64 x 1 x 4 x 4
+        return out.squeeze(), None, None

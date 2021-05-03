@@ -116,8 +116,8 @@ class Trainer(object):
             if self.model == 'sagan':
                 z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
             if self.model == 'dcgan':
-                z = torch.randn((self.z_dim, 100)).view(-1, 100, 1, 1)
-                z = Variable(z.cuda())
+                z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
+
             fake_images,gf1,gf2 = self.G(z)
             d_out_fake,df1,df2 = self.D(fake_images)
 
@@ -177,13 +177,19 @@ class Trainer(object):
 
             # Print out log info
             if (step + 1) % self.log_step == 0:
+
                 elapsed = time.time() - start_time
                 elapsed = str(datetime.timedelta(seconds=elapsed))
-                print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_out_real: {:.4f}, "
-                      " ave_gamma_l3: {:.4f}, ave_gamma_l4: {:.4f}".
-                      format(elapsed, step + 1, self.total_step, (step + 1),
-                             self.total_step , d_loss_real.item(),
-                             self.G.attn1.gamma.mean().item(), self.G.attn2.gamma.mean().item()))
+                if self.model == 'sagan':
+                    print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_out_real: {:.4f}, "
+                          " ave_gamma_l3: {:.4f}, ave_gamma_l4: {:.4f}".
+                          format(elapsed, step + 1, self.total_step, (step + 1),
+                                 self.total_step , d_loss_real.item(),
+                                 self.G.attn1.gamma.mean().item(), self.G.attn2.gamma.mean().item()))
+                if self.model == 'dcgan':
+                    print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_out_real: {:.4f}, ".
+                          format(elapsed, step + 1, self.total_step, (step + 1),
+                                 self.total_step, d_loss_real.item()))
 
             # Sample images
             if (step + 1) % self.sample_step == 0:
@@ -202,8 +208,8 @@ class Trainer(object):
             self.G = Generator_SA(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim).cuda()
             self.D = Discriminator_SA(self.batch_size,self.imsize, self.d_conv_dim).cuda()
         elif self.model == 'dcgan':
-            self.G = Generator_DC(self.batch_size).cuda()
-            self.D = Discriminator_DC(self.batch_size).cuda()
+            self.G = Generator_DC(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim).cuda()
+            self.D = Discriminator_DC(self.batch_size,self.imsize, self.d_conv_dim).cuda()
         elif self.model == 'gan':
             self.G = Generator_MLP(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim).cuda()
             self.D = Discriminator_MLP(self.batch_size,self.imsize, self.d_conv_dim).cuda()
