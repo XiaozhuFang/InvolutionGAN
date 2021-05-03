@@ -23,13 +23,7 @@ def main(config):
 
 
     if config.train:
-        if config.model=='sagan':
-            trainer = Trainer(data_loader.loader(), config)
-        elif config.model == 'dcgan':
-            trainer = Trainer(data_loader.loader(), config)
-
-        elif config.model == 'gan':
-            trainer = qgan_trainer(data_loader.loader(), config)
+        trainer = Trainer(data_loader.loader(), config)
         trainer.train()
     else:
         tester = Tester(data_loader.loader(), config)

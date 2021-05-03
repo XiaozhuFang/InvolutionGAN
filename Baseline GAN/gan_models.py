@@ -8,12 +8,12 @@ import numpy as np
 # G(z)
 class Generator_MLP(nn.Module):
     # initializers
-    def __init__(self, input_size=32, n_class = 10):
+    def __init__(self, batch_size=64, image_size=64, z_dim=100, mlp_dim=64):
         super(Generator_MLP, self).__init__()
-        self.fc1 = nn.Linear(input_size, 256)
-        self.fc2 = nn.Linear(self.fc1.out_features, 512)
-        self.fc3 = nn.Linear(self.fc2.out_features, 1024)
-        self.fc4 = nn.Linear(self.fc3.out_features, n_class)
+        self.fc1 = nn.Linear(z_dim, mlp_dim*4)
+        self.fc2 = nn.Linear(self.fc1.out_features, mlp_dim*8)
+        self.fc3 = nn.Linear(self.fc2.out_features, mlp_dim*16)
+        self.fc4 = nn.Linear(self.fc3.out_features, image_size)
 
     # forward method
     def forward(self, input):
@@ -22,16 +22,16 @@ class Generator_MLP(nn.Module):
         x = F.leaky_relu(self.fc3(x), 0.2)
         x = torch.tanh(self.fc4(x))
 
-        return x , None, None
+        return x, None, None
 
 class Discriminator_MLP(nn.Module):
     # initializers
-    def __init__(self, input_size=32, n_class=10):
-        super(Discriminator_MLPr, self).__init__()
-        self.fc1 = nn.Linear(input_size, 1024)
-        self.fc2 = nn.Linear(self.fc1.out_features, 512)
-        self.fc3 = nn.Linear(self.fc2.out_features, 256)
-        self.fc4 = nn.Linear(self.fc3.out_features, n_class)
+    def __init__(self, batch_size=64, image_size=64, mlp_dim=64):
+        super(Discriminator_MLP, self).__init__()
+        self.fc1 = nn.Linear(image_size, mlp_dim*16)
+        self.fc2 = nn.Linear(self.fc1.out_features, mlp_dim*8)
+        self.fc3 = nn.Linear(self.fc2.out_features, mlp_dim*4)
+        self.fc4 = nn.Linear(self.fc3.out_features, 1)
 
     # forward method
     def forward(self, input):

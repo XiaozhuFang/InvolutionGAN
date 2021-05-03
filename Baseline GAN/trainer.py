@@ -61,6 +61,10 @@ class Trainer(object):
 
         self.build_model()
 
+        train_hist = {}
+        train_hist['D_losses'] = []
+        train_hist['G_losses'] = []
+
         if self.use_tensorboard:
             self.build_tensorboard()
 
@@ -116,6 +120,8 @@ class Trainer(object):
             if self.model == 'sagan':
                 z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
             if self.model == 'dcgan':
+                z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
+            if self.model == 'gan':
                 z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
 
             fake_images,gf1,gf2 = self.G(z)
@@ -186,7 +192,7 @@ class Trainer(object):
                           format(elapsed, step + 1, self.total_step, (step + 1),
                                  self.total_step , d_loss_real.item(),
                                  self.G.attn1.gamma.mean().item(), self.G.attn2.gamma.mean().item()))
-                if self.model == 'dcgan':
+                if self.model in ['dcgan', 'gan']:
                     print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_out_real: {:.4f}, ".
                           format(elapsed, step + 1, self.total_step, (step + 1),
                                  self.total_step, d_loss_real.item()))

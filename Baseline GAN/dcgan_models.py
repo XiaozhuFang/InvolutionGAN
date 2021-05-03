@@ -8,7 +8,7 @@ import numpy as np
 class Generator_DC(nn.Module):
     """Generator."""
 
-    def __init__(self, batch_size, image_size=64, z_dim=100, conv_dim=64):
+    def __init__(self, batch_size=64, image_size=64, z_dim=100, conv_dim=64):
         super(Generator_DC, self).__init__()
         self.imsize = image_size
         layer1 = []
