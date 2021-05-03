@@ -16,7 +16,7 @@ def get_parameters():
     parser.add_argument('--g_conv_dim', type=int, default=64)
     parser.add_argument('--d_conv_dim', type=int, default=64)
     parser.add_argument('--lambda_gp', type=float, default=10)
-    parser.add_argument('--version', type=str, default='sagan_1')
+    parser.add_argument('--version', type=str, default='gan_1')
 
     # Training setting
     parser.add_argument('--total_step', type=int, default=100000, help='how many times to update the generator')
@@ -35,7 +35,7 @@ def get_parameters():
     # Misc
     parser.add_argument('--train', type=str2bool, default=True)
     parser.add_argument('--parallel', type=str2bool, default=False)
-    parser.add_argument('--dataset', type=str, default='celeb', choices=['lsun', 'celeb'])
+    parser.add_argument('--dataset', type=str, default='celeb', choices=['mnist', 'celeb'])
     parser.add_argument('--use_tensorboard', type=str2bool, default=False)
 
     # Path

@@ -42,7 +42,7 @@ class Self_Attn(nn.Module):
 class Generator_SA(nn.Module):
     """Generator."""
 
-    def __init__(self, batch_size, image_size=64, z_dim=100, conv_dim=64):
+    def __init__(self, batch_size, image_size=64, z_dim=100, conv_dim=64, rgb_channel=3):
         super(Generator_SA, self).__init__()
         self.imsize = image_size
         layer1 = []
@@ -81,7 +81,7 @@ class Generator_SA(nn.Module):
         self.l2 = nn.Sequential(*layer2)
         self.l3 = nn.Sequential(*layer3)
 
-        last.append(nn.ConvTranspose2d(curr_dim, 3, 4, 2, 1))
+        last.append(nn.ConvTranspose2d(curr_dim, rgb_channel, 4, 2, 1))
         last.append(nn.Tanh())
         self.last = nn.Sequential(*last)
 
@@ -104,7 +104,7 @@ class Generator_SA(nn.Module):
         out,p2 = self.attn2(out)
         # 64 x 64 x 32 x 32
         out=self.last(out)
-        # 64 x 3 x 64 x 64
+        # 64 x 3* x 64 x 64
 
         return out, p1, p2
 
@@ -164,5 +164,5 @@ class Discriminator_SA(nn.Module):
         out,p2 = self.attn2(out)
         # 64 x 512 x 4 x 4
         out = self.last(out)
-        # 64 x 1 x 4 x 4
+        # 64 x 1 x 1 x 1
         return out.squeeze(), p1, p2

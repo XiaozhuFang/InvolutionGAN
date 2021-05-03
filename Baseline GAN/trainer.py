@@ -3,10 +3,11 @@ import os
 import time
 import torch
 import datetime
-
+import json
 import torch.nn as nn
 from torch.autograd import Variable
 from torchvision.utils import save_image
+import numpy as np
 
 from sagan_models import Generator_SA, Discriminator_SA
 from dcgan_models import Generator_DC, Discriminator_DC
@@ -15,6 +16,12 @@ from utils import *
 
 class Trainer(object):
     def __init__(self, data_loader, config):
+        # Data record
+        self.record = {
+            'lossd': [],
+            'lossg': [],
+            'gp': [],
+        }
 
         # Data loader
         self.data_loader = data_loader
@@ -59,6 +66,10 @@ class Trainer(object):
         self.sample_path = os.path.join(config.sample_path, self.version)
         self.model_save_path = os.path.join(config.model_save_path, self.version)
 
+        self.rgb_channel = 3
+        if self.dataset == 'mnist':
+            self.rgb_channel = 1
+
         self.build_model()
 
         train_hist = {}
@@ -71,7 +82,6 @@ class Trainer(object):
         # Start with trained model
         if self.pretrained_model:
             self.load_pretrained_model()
-
 
 
     def train(self):
@@ -94,6 +104,9 @@ class Trainer(object):
         start_time = time.time()
         for step in range(start, self.total_step):
 
+            lossd = []
+            lossg = []
+            gp = []
             # ================== Train D ================== #
             self.D.train()
             self.G.train()
@@ -135,6 +148,7 @@ class Trainer(object):
 
             # Backward + Optimize
             d_loss = d_loss_real + d_loss_fake
+            lossd = d_loss.item()
             self.reset_grad()
             d_loss.backward()
             self.d_optimizer.step()
@@ -156,7 +170,7 @@ class Trainer(object):
                 grad = grad.view(grad.size(0), -1)
                 grad_l2norm = torch.sqrt(torch.sum(grad ** 2, dim=1))
                 d_loss_gp = torch.mean((grad_l2norm - 1) ** 2)
-
+                gp = d_loss_gp.item()
                 # Backward + Optimize
                 d_loss = self.lambda_gp * d_loss_gp
 
@@ -175,7 +189,7 @@ class Trainer(object):
                 g_loss_fake = - g_out_fake.mean()
             elif self.adv_loss == 'hinge':
                 g_loss_fake = - g_out_fake.mean()
-
+            lossg = g_loss_fake.item()
             self.reset_grad()
             g_loss_fake.backward()
             self.g_optimizer.step()
@@ -187,15 +201,22 @@ class Trainer(object):
                 elapsed = time.time() - start_time
                 elapsed = str(datetime.timedelta(seconds=elapsed))
                 if self.model == 'sagan':
-                    print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_out_real: {:.4f}, "
+                    print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], loss_G: {:.4f},loss_D: {:.4f},penalty: {:.4f}, "
                           " ave_gamma_l3: {:.4f}, ave_gamma_l4: {:.4f}".
                           format(elapsed, step + 1, self.total_step, (step + 1),
-                                 self.total_step , d_loss_real.item(),
+                                 self.total_step, lossg, lossd, gp,
                                  self.G.attn1.gamma.mean().item(), self.G.attn2.gamma.mean().item()))
                 if self.model in ['dcgan', 'gan']:
-                    print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], d_out_real: {:.4f}, ".
+                    print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], loss_G: {:.4f}, loss_D: {:.4f}, penalty: {:.4f}".
                           format(elapsed, step + 1, self.total_step, (step + 1),
-                                 self.total_step, d_loss_real.item()))
+                                 self.total_step, lossg, lossd, gp))
+                self.record["lossd"].append(lossd)
+                self.record["lossg"].append(lossg)
+                self.record["gp"].append(gp)
+                s = json.dumps(self.record)
+                with open(os.path.join(self.log_path, self.version), 'w') as f:
+                    f.write(s)
+
 
             # Sample images
             if (step + 1) % self.sample_step == 0:
@@ -211,14 +232,14 @@ class Trainer(object):
 
     def build_model(self):
         if self.model == 'sagan':
-            self.G = Generator_SA(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim).cuda()
-            self.D = Discriminator_SA(self.batch_size,self.imsize, self.d_conv_dim).cuda()
+            self.G = Generator_SA(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim, self.rgb_channel).cuda()
+            self.D = Discriminator_SA(self.batch_size,self.imsize, self.d_conv_dim, self.rgb_channel).cuda()
         elif self.model == 'dcgan':
-            self.G = Generator_DC(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim).cuda()
-            self.D = Discriminator_DC(self.batch_size,self.imsize, self.d_conv_dim).cuda()
+            self.G = Generator_DC(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim, self.rgb_channel).cuda()
+            self.D = Discriminator_DC(self.batch_size,self.imsize, self.d_conv_dim, self.rgb_channel).cuda()
         elif self.model == 'gan':
-            self.G = Generator_MLP(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim).cuda()
-            self.D = Discriminator_MLP(self.batch_size,self.imsize, self.d_conv_dim).cuda()
+            self.G = Generator_MLP(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim, self.rgb_channel).cuda()
+            self.D = Discriminator_MLP(self.batch_size,self.imsize, self.d_conv_dim, self.rgb_channel).cuda()
 
 
 
