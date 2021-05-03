@@ -8,7 +8,9 @@ import torch.nn as nn
 from torch.autograd import Variable
 from torchvision.utils import save_image
 
-from sagan_models import Generator, Discriminator
+from sagan_models import Generator_SA, Discriminator_SA
+from dcgan_models import Generator_DC, Discriminator_DC
+from gan_models import Generator_MLP, Discriminator_MLP
 from utils import *
 
 class Trainer(object):
@@ -101,14 +103,21 @@ class Trainer(object):
             # Compute loss with real images
             # dr1, dr2, df1, df2, gf1, gf2 are attention scores
             real_images = tensor2var(real_images)
+
             d_out_real,dr1,dr2 = self.D(real_images)
+
+
             if self.adv_loss == 'wgan-gp':
                 d_loss_real = - torch.mean(d_out_real)
             elif self.adv_loss == 'hinge':
                 d_loss_real = torch.nn.ReLU()(1.0 - d_out_real).mean()
 
             # apply Gumbel Softmax
-            z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
+            if self.model == 'sagan':
+                z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
+            if self.model == 'dcgan':
+                z = torch.randn((self.z_dim, 100)).view(-1, 100, 1, 1)
+                z = Variable(z.cuda())
             fake_images,gf1,gf2 = self.G(z)
             d_out_fake,df1,df2 = self.D(fake_images)
 
@@ -189,9 +198,18 @@ class Trainer(object):
                            os.path.join(self.model_save_path, '{}_D.pth'.format(step + 1)))
 
     def build_model(self):
+        if self.model == 'sagan':
+            self.G = Generator_SA(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim).cuda()
+            self.D = Discriminator_SA(self.batch_size,self.imsize, self.d_conv_dim).cuda()
+        elif self.model == 'dcgan':
+            self.G = Generator_DC(self.batch_size).cuda()
+            self.D = Discriminator_DC(self.batch_size).cuda()
+        elif self.model == 'gan':
+            self.G = Generator_MLP(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim).cuda()
+            self.D = Discriminator_MLP(self.batch_size,self.imsize, self.d_conv_dim).cuda()
 
-        self.G = Generator(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim).cuda()
-        self.D = Discriminator(self.batch_size,self.imsize, self.d_conv_dim).cuda()
+
+
         if self.parallel:
             self.G = nn.DataParallel(self.G)
             self.D = nn.DataParallel(self.D)

@@ -39,11 +39,11 @@ class Self_Attn(nn.Module):
         out = self.gamma*out + x
         return out,attention
 
-class Generator(nn.Module):
+class Generator_SA(nn.Module):
     """Generator."""
 
     def __init__(self, batch_size, image_size=64, z_dim=100, conv_dim=64):
-        super(Generator, self).__init__()
+        super(Generator_SA, self).__init__()
         self.imsize = image_size
         layer1 = []
         layer2 = []
@@ -90,22 +90,30 @@ class Generator(nn.Module):
 
     def forward(self, z):
         z = z.view(z.size(0), z.size(1), 1, 1)
+        # 64 x 128 x 1 x 1
         out=self.l1(z)
+        # 64 x 512 x 4 x 4
         out=self.l2(out)
+        # 64 x 256 x 8 x 8
         out=self.l3(out)
+        # 64 x 128 x 16 x 16
         out,p1 = self.attn1(out)
+        # 64 x 128 x 16 x 16
         out=self.l4(out)
+        # 64 x 64 x 32 x 32
         out,p2 = self.attn2(out)
+        # 64 x 64 x 32 x 32
         out=self.last(out)
+        # 64 x 3 x 64 x 64
 
         return out, p1, p2
 
 
-class Discriminator(nn.Module):
+class Discriminator_SA(nn.Module):
     """Discriminator, Auxiliary Classifier."""
 
     def __init__(self, batch_size=64, image_size=64, conv_dim=64):
-        super(Discriminator, self).__init__()
+        super(Discriminator_SA, self).__init__()
         self.imsize = image_size
         layer1 = []
         layer2 = []
@@ -142,12 +150,19 @@ class Discriminator(nn.Module):
         self.attn2 = Self_Attn(512, 'relu')
 
     def forward(self, x):
+        # 64 x 3 x 64 x 64
         out = self.l1(x)
+        # 64 x 64 x 32 x 32
         out = self.l2(out)
+        # 64 x 128 x 16 x 16
         out = self.l3(out)
+        # 64 x 256 x 8 x 8
         out,p1 = self.attn1(out)
+        # 64 x 256 x 8 x 8
         out = self.l4(out)
+        # 64 x 512 x 4 x 4
         out,p2 = self.attn2(out)
+        # 64 x 512 x 4 x 4
         out = self.last(out)
-
+        # 64 x 1 x 4 x 4
         return out.squeeze(), p1, p2
