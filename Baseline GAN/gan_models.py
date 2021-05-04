@@ -42,13 +42,13 @@ class Discriminator_MLP(nn.Module):
         super(Discriminator_MLP, self).__init__()
         self.model = nn.Sequential(
             nn.Linear(image_size*image_size*rgb_channel, mlp_dim * 48),
-            nn.BatchNorm1d(mlp_dim * 48),
+            #nn.BatchNorm1d(mlp_dim * 48),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(mlp_dim*48, mlp_dim*12),
-            nn.BatchNorm1d(mlp_dim * 12),
+            #nn.BatchNorm1d(mlp_dim * 12),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(mlp_dim*12, mlp_dim*4),
-            nn.BatchNorm1d(mlp_dim * 4),
+            #nn.BatchNorm1d(mlp_dim * 4),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(mlp_dim*4, 1),
         )
