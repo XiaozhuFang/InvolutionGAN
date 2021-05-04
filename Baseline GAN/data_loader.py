@@ -1,7 +1,8 @@
 import torch
 import torchvision.datasets as dsets
 from torchvision import transforms
-
+from PIL import Image
+import os
 
 class Data_Loader():
     def __init__(self, train, dataset, image_path, image_size, batch_size, shuf=True):
@@ -15,7 +16,7 @@ class Data_Loader():
     def transform(self, resize, totensor, normalize, centercrop):
         options = []
         if centercrop:
-            options.append(transforms.CenterCrop(160))
+            options.append(transforms.CenterCrop(64))
         if resize:
             options.append(transforms.Resize((self.imsize,self.imsize)))
         if totensor:
@@ -31,8 +32,9 @@ class Data_Loader():
         return dataset
 
     def load_celeb(self):
-        transforms = self.transform(True, True, True, True)
-        dataset = dsets.ImageFolder(self.path+'/resized_celebA', transform=transforms)
+        transforms = self.transform(False, True, True, True)
+        dataset = dsets.ImageFolder(self.path+'/resized_celebA/celebA/', transform=transforms)
+
         return dataset
 
 
