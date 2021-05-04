@@ -9,6 +9,8 @@ from torch.autograd import Variable
 from torchvision.utils import save_image
 import numpy as np
 
+
+
 from sagan_models import Generator_SA, Discriminator_SA
 from dcgan_models import Generator_DC, Discriminator_DC
 from gan_models import Generator_MLP, Discriminator_MLP
@@ -51,7 +53,6 @@ class Trainer(object):
         self.pretrained_model = config.pretrained_model
 
         self.dataset = config.dataset
-        self.use_tensorboard = config.use_tensorboard
         self.image_path = config.image_path
         self.log_path = config.log_path
         self.model_save_path = config.model_save_path
@@ -76,8 +77,6 @@ class Trainer(object):
         train_hist['D_losses'] = []
         train_hist['G_losses'] = []
 
-        if self.use_tensorboard:
-            self.build_tensorboard()
 
         # Start with trained model
         if self.pretrained_model:
@@ -120,7 +119,6 @@ class Trainer(object):
             # Compute loss with real images
             # dr1, dr2, df1, df2, gf1, gf2 are attention scores
             real_images = tensor2var(real_images)
-
             d_out_real,dr1,dr2 = self.D(real_images)
 
 
@@ -213,10 +211,9 @@ class Trainer(object):
                 self.record["lossd"].append(lossd)
                 self.record["lossg"].append(lossg)
                 self.record["gp"].append(gp)
-                s = json.dumps(self.record)
-                with open(os.path.join(self.log_path, self.version), 'w') as f:
-                    f.write(s)
 
+                with open(os.path.join(self.log_path, "loss.log"), 'w') as f:
+                    json.dump(self.record, f)
 
             # Sample images
             if (step + 1) % self.sample_step == 0:
@@ -256,10 +253,6 @@ class Trainer(object):
         # print networks
         print(self.G)
         print(self.D)
-
-    def build_tensorboard(self):
-        from logger import Logger
-        self.logger = Logger(self.log_path)
 
     def load_pretrained_model(self):
         self.G.load_state_dict(torch.load(os.path.join(

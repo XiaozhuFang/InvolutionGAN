@@ -1,4 +1,3 @@
-
 from parameter import *
 from trainer import Trainer
 # from tester import Tester
@@ -33,3 +32,5 @@ if __name__ == '__main__':
     config = get_parameters()
     print(config)
     main(config)
+
+

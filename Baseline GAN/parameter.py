@@ -36,7 +36,6 @@ def get_parameters():
     parser.add_argument('--train', type=str2bool, default=True)
     parser.add_argument('--parallel', type=str2bool, default=False)
     parser.add_argument('--dataset', type=str, default='celeb', choices=['mnist', 'celeb'])
-    parser.add_argument('--use_tensorboard', type=str2bool, default=False)
 
     # Path
     parser.add_argument('--image_path', type=str, default='./data')

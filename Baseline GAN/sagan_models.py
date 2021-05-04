@@ -112,7 +112,7 @@ class Generator_SA(nn.Module):
 class Discriminator_SA(nn.Module):
     """Discriminator, Auxiliary Classifier."""
 
-    def __init__(self, batch_size=64, image_size=64, conv_dim=64):
+    def __init__(self, batch_size=64, image_size=64, conv_dim=64, rgb_channel=3):
         super(Discriminator_SA, self).__init__()
         self.imsize = image_size
         layer1 = []
@@ -120,7 +120,7 @@ class Discriminator_SA(nn.Module):
         layer3 = []
         last = []
 
-        layer1.append(SpectralNorm(nn.Conv2d(3, conv_dim, 4, 2, 1)))
+        layer1.append(SpectralNorm(nn.Conv2d( rgb_channel, conv_dim, 4, 2, 1)))
         layer1.append(nn.LeakyReLU(0.1))
 
         curr_dim = conv_dim
