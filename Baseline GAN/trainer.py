@@ -61,7 +61,6 @@ class Trainer(object):
         self.sample_step = config.sample_step
         self.model_save_step = config.model_save_step
         self.version = config.version
-
         # Path
         self.log_path = os.path.join(config.log_path, self.version)
         self.sample_path = os.path.join(config.sample_path, self.version)

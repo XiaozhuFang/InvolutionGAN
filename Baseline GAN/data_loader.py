@@ -13,12 +13,12 @@ class Data_Loader():
         self.shuf = shuf
         self.train = train
 
-    def transform(self, resize, totensor, normalize, centercrop):
+    def transform(self, centercrop,  resize, totensor, normalize):
         options = []
         if centercrop:
             options.append(transforms.CenterCrop(64))
         if resize:
-            options.append(transforms.Resize((self.imsize,self.imsize)))
+            options.append(transforms.Resize((self.imsize, self.imsize)))
         if totensor:
             options.append(transforms.ToTensor())
         if normalize:
@@ -26,15 +26,14 @@ class Data_Loader():
         transform = transforms.Compose(options)
         return transform
 
-    def load_lsun(self, classes='church_outdoor_train'):
-        transforms = self.transform(True, True, True, False)
-        dataset = dsets.LSUN(self.path, classes=[classes], transform=transforms)
-        return dataset
 
     def load_celeb(self):
         transforms = self.transform(False, True, True, True)
         dataset = dsets.ImageFolder(self.path+'/resized_celebA/celebA/', transform=transforms)
 
+    def load_anime(self):
+        transforms = self.transform(False, True, True, True)
+        dataset = dsets.ImageFolder(self.path + '/resized_Anime', transform=transforms)
         return dataset
 
 
@@ -43,6 +42,8 @@ class Data_Loader():
             dataset = self.load_lsun()
         elif self.dataset == 'celeb':
             dataset = self.load_celeb()
+        elif self.dataset == 'anime':
+            dataset = self.load_anime()
 
         loader = torch.utils.data.DataLoader(dataset=dataset,
                                               batch_size=self.batch,

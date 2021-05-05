@@ -13,7 +13,7 @@ class Generator_MLP(nn.Module):
         super(Generator_MLP, self).__init__()
 
         def block(in_feat, out_feat, normalize=True):
-            layers = [nn.Linear(in_feat, out_feat)]
+            layers = [SpectralNorm(nn.Linear(in_feat, out_feat))]
             if normalize:
                 layers.append(nn.BatchNorm1d(out_feat, 0.8))
             layers.append(nn.LeakyReLU(0.2, inplace=True))
@@ -41,17 +41,29 @@ class Discriminator_MLP(nn.Module):
     def __init__(self, batch_size=64, image_size=64, mlp_dim=64, rgb_channel=3):
         super(Discriminator_MLP, self).__init__()
         self.model = nn.Sequential(
-            nn.Linear(image_size*image_size*rgb_channel, mlp_dim * 48),
+            SpectralNorm(nn.Linear(image_size*image_size*rgb_channel, mlp_dim * 48)),
             #nn.BatchNorm1d(mlp_dim * 48),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(mlp_dim*48, mlp_dim*12),
+            SpectralNorm(nn.Linear(mlp_dim*48, mlp_dim*12)),
             #nn.BatchNorm1d(mlp_dim * 12),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(mlp_dim*12, mlp_dim*4),
+            SpectralNorm(nn.Linear(mlp_dim*12, mlp_dim*4)),
             #nn.BatchNorm1d(mlp_dim * 4),
             nn.LeakyReLU(0.2, inplace=True),
             nn.Linear(mlp_dim*4, 1),
         )
+        #self.model = nn.Sequential(
+        #    nn.Linear(image_size*image_size*rgb_channel, mlp_dim * 48),
+        #    #nn.BatchNorm1d(mlp_dim * 48),
+        #    nn.LeakyReLU(0.2, inplace=True),
+        #    nn.Linear(mlp_dim*48, mlp_dim*12),
+        #    #nn.BatchNorm1d(mlp_dim * 12),
+        #    nn.LeakyReLU(0.2, inplace=True),
+        #    nn.Linear(mlp_dim*12, mlp_dim*4),
+        #    #nn.BatchNorm1d(mlp_dim * 4),
+        #    nn.LeakyReLU(0.2, inplace=True),
+        #    nn.Linear(mlp_dim*4, 1),
+        #)
 
 
     # forward method

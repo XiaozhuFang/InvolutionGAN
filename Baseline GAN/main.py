@@ -30,6 +30,7 @@ def main(config):
 
 if __name__ == '__main__':
     config = get_parameters()
+    config.version = config.dataset + '_' + config.model + '_' + config.version
     print(config)
     main(config)
 

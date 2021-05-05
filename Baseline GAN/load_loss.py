@@ -5,13 +5,13 @@ import numpy as np
 
 
 
-file = os.path.join("..", "Baseline GAN", "logs", "gan_1",'loss.log')
+file = os.path.join("..", "Baseline GAN", "logs", "anime_sagan_0.1",'loss.log')
 with open(file, 'r') as f:
     s = f.readline()
 s = s.strip()
 
 log = json.loads(s)
-print(log)
+
 
 
 # print(len(log['lossG']))
@@ -26,7 +26,7 @@ plt.xlabel('Training Epochs')
 plt.ylabel('Loss estiamte')
 plt.legend(['loss G, loss D, penalty'])
 # plt.ylim([-200000, -10])
-plt.ylim([-1, 1.6])
+
 # plt.plot(np.array(log['lossD'])[150:], color='r')
 # plt.plot(log['lossG'], color='g')
 # plt.yscale('symlog')
