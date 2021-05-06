@@ -12,6 +12,7 @@ import numpy as np
 
 
 from sagan_models import Generator_SA, Discriminator_SA
+from igan_models import Generator_INV, Discriminator_INV
 from dcgan_models import Generator_DC, Discriminator_DC
 from gan_models import Generator_MLP, Discriminator_MLP
 from utils import *
@@ -127,12 +128,7 @@ class Trainer(object):
                 d_loss_real = torch.nn.ReLU()(1.0 - d_out_real).mean()
 
             # apply Gumbel Softmax
-            if self.model == 'sagan':
-                z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
-            if self.model == 'dcgan':
-                z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
-            if self.model == 'gan':
-                z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
+            z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
 
             fake_images,gf1,gf2 = self.G(z)
             d_out_fake,df1,df2 = self.D(fake_images)
@@ -203,7 +199,7 @@ class Trainer(object):
                           format(elapsed, step + 1, self.total_step, (step + 1),
                                  self.total_step, lossg, lossd, gp,
                                  self.G.attn1.gamma.mean().item(), self.G.attn2.gamma.mean().item()))
-                if self.model in ['dcgan', 'gan']:
+                if self.model in ['dcgan', 'gan','igan']:
                     print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], loss_G: {:.4f}, loss_D: {:.4f}, penalty: {:.4f}".
                           format(elapsed, step + 1, self.total_step, (step + 1),
                                  self.total_step, lossg, lossd, gp))
@@ -236,7 +232,9 @@ class Trainer(object):
         elif self.model == 'gan':
             self.G = Generator_MLP(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim, self.rgb_channel).cuda()
             self.D = Discriminator_MLP(self.batch_size,self.imsize, self.d_conv_dim, self.rgb_channel).cuda()
-
+        elif self.model == 'igan':
+            self.G = Generator_INV(self.batch_size,self.imsize, self.z_dim, self.g_conv_dim, self.rgb_channel).cuda()
+            self.D = Discriminator_INV(self.batch_size,self.imsize, self.d_conv_dim, self.rgb_channel).cuda()
 
 
         if self.parallel:

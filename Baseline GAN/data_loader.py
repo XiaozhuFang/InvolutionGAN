@@ -30,6 +30,7 @@ class Data_Loader():
     def load_celeb(self):
         transforms = self.transform(False, True, True, True)
         dataset = dsets.ImageFolder(self.path+'/resized_celebA/celebA/', transform=transforms)
+        return dataset
 
     def load_anime(self):
         transforms = self.transform(False, True, True, True)
