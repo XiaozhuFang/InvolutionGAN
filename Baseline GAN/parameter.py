@@ -16,7 +16,7 @@ def get_parameters():
     parser.add_argument('--g_conv_dim', type=int, default=64)
     parser.add_argument('--d_conv_dim', type=int, default=64)
     parser.add_argument('--lambda_gp', type=float, default=10)
-    parser.add_argument('--version', type=str, default='0.2')
+    parser.add_argument('--version', type=str, default='1.0')
 
     # Training setting
     parser.add_argument('--total_step', type=int, default=100000, help='how many times to update the generator')
@@ -47,7 +47,7 @@ def get_parameters():
     # Step size
     parser.add_argument('--log_step', type=int, default=10)
     parser.add_argument('--sample_step', type=int, default=100)
-    parser.add_argument('--model_save_step', type=float, default=1.0)
+    parser.add_argument('--model_save_step', type=float, default=1000)
 
 
     return parser.parse_args()

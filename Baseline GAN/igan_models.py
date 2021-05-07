@@ -16,12 +16,12 @@ class Involution2d(nn.Module):
                  in_channels: int,
                  out_channels: int,
                  sigma_mapping: nn.Module = None,
-                 kernel_size: Union[int, Tuple[int, int]] = (7, 7),
+                 kernel_size: Union[int, Tuple[int, int]] = (3, 3),
                  stride: Union[int, Tuple[int, int]] = (1, 1),
                  groups: int = 1,
                  reduce_ratio: int = 1,
                  dilation: Union[int, Tuple[int, int]] = (1, 1),
-                 padding: Union[int, Tuple[int, int]] = (3, 3),
+                 padding: Union[int, Tuple[int, int]] = (1, 1),
                  **kwargs) -> None:
         """
         Constructor method
@@ -126,44 +126,6 @@ class Involution2d(nn.Module):
         return output
 
 
-
-class Self_Attn(nn.Module):
-    """ Self attention Layer"""
-
-    def __init__(self, in_dim, activation):
-        super(Self_Attn, self).__init__()
-        self.chanel_in = in_dim
-        self.activation = activation
-
-        self.query_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim // 8, kernel_size=1)
-        self.key_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim // 8, kernel_size=1)
-        self.value_conv = nn.Conv2d(in_channels=in_dim, out_channels=in_dim, kernel_size=1)
-        self.gamma = nn.Parameter(torch.zeros(1))
-
-        self.softmax = nn.Softmax(dim=-1)  #
-
-    def forward(self, x):
-        """
-            inputs :
-                x : input feature maps( B X C X W X H)
-            returns :
-                out : self attention value + input feature
-                attention: B X N X N (N is Width*Height)
-        """
-        m_batchsize, C, width, height = x.size()
-        proj_query = self.query_conv(x).view(m_batchsize, -1, width * height).permute(0, 2, 1)  # B X CX(N)
-        proj_key = self.key_conv(x).view(m_batchsize, -1, width * height)  # B X C x (*W*H)
-        energy = torch.bmm(proj_query, proj_key)  # transpose check
-        attention = self.softmax(energy)  # BX (N) X (N)
-        proj_value = self.value_conv(x).view(m_batchsize, -1, width * height)  # B X C X N
-
-        out = torch.bmm(proj_value, attention.permute(0, 2, 1))
-        out = out.view(m_batchsize, C, width, height)
-
-        out = self.gamma * out + x
-        return out, attention
-
-
 class Generator_INV(nn.Module):
     """Generator."""
 
@@ -210,23 +172,22 @@ class Generator_INV(nn.Module):
         last.append(nn.Tanh())
         self.last = nn.Sequential(*last)
 
-        self.inv1 = Involution2d(512, 512)
+        self.inv1 = Involution2d(64, 64, reduce_ratio=1)
         self.inv2 = Involution2d(256, 256)
+        self.batchN2 = nn.BatchNorm2d(256)
 
     def forward(self, z):
         z = z.view(z.size(0), z.size(1), 1, 1)
         # 64 x 128 x 1 x 1
         out = self.l1(z)
         # 64 x 512 x 4 x 4
-        out = self.inv1(out)
-        # 64 x 512 x 4 x 4
         out = self.l2(out)
-        # 64 x 256 x 8 x 8
-        out = self.inv2(out)
         # 64 x 256 x 8 x 8
         out = self.l3(out)
         # 64 x 128 x 16 x 16
         out = self.l4(out)
+        # 64 x 64 x 32 x 32
+        out = self.inv1(out)
         # 64 x 64 x 32 x 32
         out = self.last(out)
         # 64 x 3* x 64 x 64
@@ -272,21 +233,19 @@ class Discriminator_INV(nn.Module):
         self.last = nn.Sequential(*last)
 
         self.inv1 = Involution2d(256, 256)
-        self.inv2 = Involution2d(512, 512)
+        self.inv2 = Involution2d(64, 64, reduce_ratio=1)
 
     def forward(self, x):
         # 64 x 3 x 64 x 64
         out = self.l1(x)
         # 64 x 64 x 32 x 32
+        out = self.inv2(out)
+        # 64 x 64 x 32 x 32
         out = self.l2(out)
         # 64 x 128 x 16 x 16
         out = self.l3(out)
         # 64 x 256 x 8 x 8
-        out= self.inv1(out)
-        # 64 x 256 x 8 x 8
         out = self.l4(out)
-        # 64 x 512 x 4 x 4
-        out = self.inv2(out)
         # 64 x 512 x 4 x 4
         out = self.last(out)
         # 64 x 1 x 1 x 1

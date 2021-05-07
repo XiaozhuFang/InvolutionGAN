@@ -173,6 +173,8 @@ class Trainer(object):
 
             # ================== Train G and gumbel ================== #
             # Create random noise
+            #if (step + 1) % 5 == start:
+
             z = tensor2var(torch.randn(real_images.size(0), self.z_dim))
             fake_images,_,_ = self.G(z)
 
@@ -199,7 +201,7 @@ class Trainer(object):
                           format(elapsed, step + 1, self.total_step, (step + 1),
                                  self.total_step, lossg, lossd, gp,
                                  self.G.attn1.gamma.mean().item(), self.G.attn2.gamma.mean().item()))
-                if self.model in ['dcgan', 'gan','igan']:
+                if self.model in ['dcgan', 'gan', 'igan']:
                     print("Elapsed [{}], G_step [{}/{}], D_step[{}/{}], loss_G: {:.4f}, loss_D: {:.4f}, penalty: {:.4f}".
                           format(elapsed, step + 1, self.total_step, (step + 1),
                                  self.total_step, lossg, lossd, gp))
