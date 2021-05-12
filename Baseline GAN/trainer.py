@@ -8,8 +8,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 from torchvision.utils import save_image
 import numpy as np
-
-
+import matplotlib.pyplot as plt
 
 from sagan_models import Generator_SA, Discriminator_SA
 from igan_models import Generator_INV, Discriminator_INV
@@ -119,6 +118,9 @@ class Trainer(object):
             # Compute loss with real images
             # dr1, dr2, df1, df2, gf1, gf2 are attention scores
             real_images = tensor2var(real_images)
+            if step == 1:
+                plt.imshow(np.array(denorm(real_images.cpu().data[1].squeeze())))
+
             d_out_real,dr1,dr2 = self.D(real_images)
 
 

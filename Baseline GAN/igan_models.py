@@ -16,12 +16,12 @@ class Involution2d(nn.Module):
                  in_channels: int,
                  out_channels: int,
                  sigma_mapping: nn.Module = None,
-                 kernel_size: Union[int, Tuple[int, int]] = (3, 3),
+                 kernel_size: Union[int, Tuple[int, int]] = (7, 7),
                  stride: Union[int, Tuple[int, int]] = (1, 1),
                  groups: int = 1,
                  reduce_ratio: int = 1,
                  dilation: Union[int, Tuple[int, int]] = (1, 1),
-                 padding: Union[int, Tuple[int, int]] = (1, 1),
+                 padding: Union[int, Tuple[int, int]] = (3, 3),
                  **kwargs) -> None:
         """
         Constructor method
@@ -79,6 +79,8 @@ class Involution2d(nn.Module):
                                       kernel_size=(1, 1), stride=(1, 1), padding=(0, 0))
         self.unfold = nn.Unfold(kernel_size=self.kernel_size, dilation=dilation, padding=padding, stride=stride)
 
+        self.gamma = nn.Parameter(torch.zeros(1))
+
     def __repr__(self) -> str:
         """
         Method returns information about the module
@@ -123,6 +125,7 @@ class Involution2d(nn.Module):
             batch_size, self.groups, self.kernel_size[0] * self.kernel_size[1], height, width).unsqueeze(dim=2)
         # Apply kernel to produce output
         output = (kernel * input_unfolded).sum(dim=3).view(batch_size, -1, height, width)
+        output = self.gamma*output + input
         return output
 
 
@@ -172,9 +175,8 @@ class Generator_INV(nn.Module):
         last.append(nn.Tanh())
         self.last = nn.Sequential(*last)
 
-        self.inv1 = Involution2d(64, 64, reduce_ratio=1)
+        self.inv1 = Involution2d(128, 128, reduce_ratio=128)
         self.inv2 = Involution2d(256, 256)
-        self.batchN2 = nn.BatchNorm2d(256)
 
     def forward(self, z):
         z = z.view(z.size(0), z.size(1), 1, 1)
@@ -185,14 +187,17 @@ class Generator_INV(nn.Module):
         # 64 x 256 x 8 x 8
         out = self.l3(out)
         # 64 x 128 x 16 x 16
-        out = self.l4(out)
-        # 64 x 64 x 32 x 32
         out = self.inv1(out)
+
+        out = self.l4(out)
         # 64 x 64 x 32 x 32
         out = self.last(out)
         # 64 x 3* x 64 x 64
 
         return out,None,None
+
+
+
 
 
 class Discriminator_INV(nn.Module):
@@ -233,16 +238,16 @@ class Discriminator_INV(nn.Module):
         self.last = nn.Sequential(*last)
 
         self.inv1 = Involution2d(256, 256)
-        self.inv2 = Involution2d(64, 64, reduce_ratio=1)
+        self.inv2 = Involution2d(128, 128, reduce_ratio=128)
 
     def forward(self, x):
         # 64 x 3 x 64 x 64
         out = self.l1(x)
         # 64 x 64 x 32 x 32
-        out = self.inv2(out)
-        # 64 x 64 x 32 x 32
         out = self.l2(out)
         # 64 x 128 x 16 x 16
+        out = self.inv2(out)
+
         out = self.l3(out)
         # 64 x 256 x 8 x 8
         out = self.l4(out)

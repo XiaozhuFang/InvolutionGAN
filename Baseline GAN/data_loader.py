@@ -1,6 +1,6 @@
 import torch
 import torchvision.datasets as dsets
-from torchvision import transforms
+from torchvision import transforms, datasets
 from PIL import Image
 import os
 
@@ -26,6 +26,15 @@ class Data_Loader():
         transform = transforms.Compose(options)
         return transform
 
+    def load_mnist(self):
+        transform = transforms.Compose([
+            transforms.Resize(self.imsize),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5], std=[0.5])
+        ])
+        dataset =  datasets.MNIST('data', train=True, download=True, transform=transform)
+        return dataset
+
 
     def load_celeb(self):
         transforms = self.transform(False, True, True, True)
@@ -45,6 +54,8 @@ class Data_Loader():
             dataset = self.load_celeb()
         elif self.dataset == 'anime':
             dataset = self.load_anime()
+        elif self.dataset == 'mnist':
+            dataset = self.load_mnist()
 
         loader = torch.utils.data.DataLoader(dataset=dataset,
                                               batch_size=self.batch,
