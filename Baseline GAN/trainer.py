@@ -118,8 +118,8 @@ class Trainer(object):
             # Compute loss with real images
             # dr1, dr2, df1, df2, gf1, gf2 are attention scores
             real_images = tensor2var(real_images)
-            if step == 1:
-                plt.imshow(np.array(denorm(real_images.cpu().data[1].squeeze())))
+            #if step == 1:
+            #    plt.imshow(np.array(denorm(real_images.cpu().data[1].squeeze())))
 
             d_out_real,dr1,dr2 = self.D(real_images)
 
@@ -218,12 +218,12 @@ class Trainer(object):
             if (step + 1) % self.sample_step == 0:
                 fake_images,_,_= self.G(fixed_z)
                 save_image(denorm(fake_images.data),
-                           os.path.join(self.sample_path, '{}_fake.png'.format(step + 1)))
+                           os.path.join(self.sample_path, '{}_fake.jpg'.format(step + 1)))
 
             if (step+1) % model_save_step==0:
-                torch.save(self.G.state_dict(),
+                torch.save(self.G,
                            os.path.join(self.model_save_path, '{}_G.pth'.format(step + 1)))
-                torch.save(self.D.state_dict(),
+                torch.save(self.D,
                            os.path.join(self.model_save_path, '{}_D.pth'.format(step + 1)))
 
     def build_model(self):

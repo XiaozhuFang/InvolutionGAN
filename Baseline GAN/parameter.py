@@ -16,7 +16,7 @@ def get_parameters():
     parser.add_argument('--g_conv_dim', type=int, default=64)
     parser.add_argument('--d_conv_dim', type=int, default=64)
     parser.add_argument('--lambda_gp', type=float, default=10)
-    parser.add_argument('--version', type=str, default='test2')
+    parser.add_argument('--version', type=str, default='nothing')
 
     # Training setting
     parser.add_argument('--total_step', type=int, default=100000, help='how many times to update the generator')
@@ -35,7 +35,7 @@ def get_parameters():
     # Misc
     parser.add_argument('--train', type=str2bool, default=True)
     parser.add_argument('--parallel', type=str2bool, default=False)
-    parser.add_argument('--dataset', type=str, default='mnist', choices=['mnist', 'celeb','anime'])
+    parser.add_argument('--dataset', type=str, default='celeb', choices=['mnist', 'celeb','anime'])
 
     # Path
     parser.add_argument('--image_path', type=str, default='./data')
