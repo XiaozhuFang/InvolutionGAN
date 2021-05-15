@@ -282,5 +282,4 @@ class involution(nn.Module):
         b, c, h, w = weight.shape
         weight = weight.view(b, self.groups, self.kernel_size, self.kernel_size, h, w)
         out = _involution_cuda(x, weight, stride=self.stride, padding=(self.kernel_size - 1) // 2)
-        out = self.gamma * out+ input
         return out

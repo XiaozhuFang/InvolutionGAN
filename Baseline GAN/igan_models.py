@@ -126,7 +126,7 @@ class involution2d(nn.Module):
             batch_size, self.groups, self.kernel_size[0] * self.kernel_size[1], height, width).unsqueeze(dim=2)
         # Apply kernel to produce output
         output = (kernel * input_unfolded).sum(dim=3).view(batch_size, -1, height, width)
-        output = self.gamma * output + input
+        output =  output
         return output
 
 
@@ -178,10 +178,10 @@ class Generator_INV(nn.Module):
 
 
         c1=64
-        #self.inv1 = involution2d(c1,c1)
+        self.inv1 = involution2d(c1,c1)
 
         c2=128
-        self.inv1 = involution(c1, 3,1)
+        #self.inv1 = involution(c1, 3,1)
 
     def forward(self, z):
         z = z.view(z.size(0), z.size(1), 1, 1)
@@ -245,10 +245,10 @@ class Discriminator_INV(nn.Module):
         last.append(nn.Conv2d(curr_dim, 1, 4))
         self.last = nn.Sequential(*last)
         c1=64
+        self.inv1 = involution2d(c1, c1)
 
-        self.inv1 = involution(c1, 3, 1)
+#        self.inv1 = involution(c1, 3, 1)
         c2=128
-        #self.inv2 = involution2d(c2, 3,1)
 
 
 

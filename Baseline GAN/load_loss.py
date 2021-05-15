@@ -5,7 +5,7 @@ import numpy as np
 
 
 
-file = os.path.join("..", "Baseline GAN", "logs", "celeb_igan_0.3",'loss.log')
+file = os.path.join("..", "Baseline GAN", "logs", "mnist_igan_5.0",'loss.log')
 with open(file, 'r') as f:
     s = f.readline()
 s = s.strip()

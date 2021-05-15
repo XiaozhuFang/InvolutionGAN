@@ -34,5 +34,12 @@ if __name__ == '__main__':
     print(config)
     main(config)
 
+    config = get_parameters2()
+    config.version = config.dataset + '_' + config.model + '_' + config.version
+    print(config)
+    main(config)
 
-
+    config = get_parameters3()
+    config.version = config.dataset + '_' + config.model + '_' + config.version
+    print(config)
+    main(config)

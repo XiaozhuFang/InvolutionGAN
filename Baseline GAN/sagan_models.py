@@ -97,7 +97,7 @@ class Generator_SA(nn.Module):
         # 64 x 256 x 8 x 8
         out=self.l3(out)
         # 64 x 128 x 16 x 16
-        out,p1 = self.attn1(out)
+        #out,p1 = self.attn1(out)
         # 64 x 128 x 16 x 16
         out=self.l4(out)
         # 64 x 64 x 32 x 32
@@ -106,7 +106,7 @@ class Generator_SA(nn.Module):
         out=self.last(out)
         # 64 x 3* x 64 x 64
 
-        return out, p1, p2
+        return out, None, p2
 
 
 class Discriminator_SA(nn.Module):
@@ -146,23 +146,24 @@ class Discriminator_SA(nn.Module):
         last.append(nn.Conv2d(curr_dim, 1, 4))
         self.last = nn.Sequential(*last)
 
-        self.attn1 = Self_Attn(256, 'relu')
+        self.attn1 = Self_Attn(64, 'relu')
         self.attn2 = Self_Attn(512, 'relu')
 
     def forward(self, x):
         # 64 x 3 x 64 x 64
         out = self.l1(x)
         # 64 x 64 x 32 x 32
+        out,p1 = self.attn1(out)
         out = self.l2(out)
         # 64 x 128 x 16 x 16
         out = self.l3(out)
         # 64 x 256 x 8 x 8
-        out,p1 = self.attn1(out)
         # 64 x 256 x 8 x 8
         out = self.l4(out)
         # 64 x 512 x 4 x 4
-        out,p2 = self.attn2(out)
+        #out,p2 = self.attn2(out)
         # 64 x 512 x 4 x 4
         out = self.last(out)
         # 64 x 1 x 1 x 1
-        return out.squeeze(), p1, p2
+        return out.squeeze(), p1, None
+
