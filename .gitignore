@@ -1,13 +1,13 @@
-/Baseline GAN/data/celebA
-/Baseline GAN/data/resized_celebA/
-/Baseline GAN/data/Anime/
-/Baseline GAN/data/resized_anime/
-/Baseline GAN/samples/anime_gan_0.1/
-/Baseline GAN/samples/anime_igan_0.2/
-/Baseline GAN/samples/anime_sagan_0.1/
-/Baseline GAN/samples/celeb_dcgan_1.0/
-/Baseline GAN/samples/celeb_igan_0.2/
-/Baseline GAN/samples/celeb_igan_0.3/
-/Baseline GAN/samples/celeb_igan_1.0/
-/Baseline GAN/samples/celeb_sagan_1.0/
-/Baseline GAN/samples/gan_1/
+/InvolutionGAN/data/celebA
+/InvolutionGAN/data/resized_celebA/
+/InvolutionGAN/data/Anime/
+/InvolutionGAN/data/resized_anime/
+/InvolutionGAN/samples/anime_gan_0.1/
+/InvolutionGAN/samples/anime_igan_0.2/
+/InvolutionGAN/samples/anime_sagan_0.1/
+/InvolutionGAN/samples/celeb_dcgan_1.0/
+/InvolutionGAN/samples/celeb_igan_0.2/
+/InvolutionGAN/samples/celeb_igan_0.3/
+/InvolutionGAN/samples/celeb_igan_1.0/
+/InvolutionGAN/samples/celeb_sagan_1.0/
+/InvolutionGAN/samples/gan_1/
