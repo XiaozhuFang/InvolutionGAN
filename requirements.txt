@@ -1,0 +1,9 @@
+imageio
+scipy
+six
+numpy
+python-dateutil==2.7.3
+torch==1.7.1
+torchvision==0.4.1
+tqdm==4.29.1
+opencv-python
