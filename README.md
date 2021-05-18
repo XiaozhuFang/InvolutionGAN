@@ -1,4 +1,4 @@
-# InvolutionGAN
+# Involution GAN
 
 Run the main.py and set parameters.py
 
