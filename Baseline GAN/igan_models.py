@@ -180,7 +180,6 @@ class Generator_INV(nn.Module):
         c1=64
         self.inv1 = involution2d(c1,c1)
 
-        c2=128
         #self.inv1 = involution(c1, 3,1)
 
     def forward(self, z):
